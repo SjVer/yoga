@@ -723,6 +723,9 @@ class YG_EXPORT Style {
     fatalWithMessage("Invalid physical edge");
   }
 
+
+  #ifndef APPLY_FIXES_FOR_CPP17
+
   Direction direction_ : bitCount<Direction>() = Direction::Inherit;
   FlexDirection flexDirection_
       : bitCount<FlexDirection>() = FlexDirection::Column;
@@ -736,6 +739,37 @@ class YG_EXPORT Style {
   Overflow overflow_ : bitCount<Overflow>() = Overflow::Visible;
   Display display_ : bitCount<Display>() = Display::Flex;
   BoxSizing boxSizing_ : bitCount<BoxSizing>() = BoxSizing::BorderBox;
+
+  #else
+
+  Direction direction_ : bitCount<Direction>();
+  FlexDirection flexDirection_ : bitCount<FlexDirection>();
+  Justify justifyContent_ : bitCount<Justify>();
+  Align alignContent_ : bitCount<Align>();
+  Align alignItems_ : bitCount<Align>();
+  Align alignSelf_ : bitCount<Align>();
+  PositionType positionType_ : bitCount<PositionType>();
+  Wrap flexWrap_ : bitCount<Wrap>();
+  Overflow overflow_ : bitCount<Overflow>();
+  Display display_ : bitCount<Display>();
+  BoxSizing boxSizing_ : bitCount<BoxSizing>();
+
+public:
+  Style() : direction_(Direction::Inherit),
+        flexDirection_(FlexDirection::Column),
+        justifyContent_(Justify::FlexStart),
+        alignContent_(Align::FlexStart),
+        alignItems_(Align::Stretch),
+        alignSelf_(Align::Auto),
+        positionType_(PositionType::Relative),
+        flexWrap_(Wrap::NoWrap),
+        overflow_(Overflow::Visible),
+        display_(Display::Flex),
+        boxSizing_(BoxSizing::BorderBox) {}
+
+private:
+
+  #endif
 
   StyleValueHandle flex_{};
   StyleValueHandle flexGrow_{};

@@ -16,6 +16,31 @@
 #include <yoga/style/StyleSizeLength.h>
 #include <yoga/style/StyleValueHandle.h>
 
+#ifndef APPLY_FIXES_FOR_CPP17
+//#define cpp17_or_cpp20_bit_cast std::bit_cast
+template <class To>
+constexpr inline To cpp17_or_cpp20_bit_cast(const auto& src) noexcept {
+  return std::bit_cast<To>(src);
+}
+#else
+template <class To, class From>
+std::enable_if_t<
+    sizeof(To) == sizeof(From) && std::is_trivially_copyable_v<From> &&
+        std::is_trivially_copyable_v<To>,
+    To>
+// constexpr support needs compiler magic
+cpp17_or_cpp20_bit_cast(const From& src) noexcept {
+  static_assert(
+      std::is_trivially_constructible_v<To>,
+      "This implementation additionally requires "
+      "destination type to be trivially constructible");
+
+  To dst;
+  std::memcpy(&dst, &src, sizeof(To));
+  return dst;
+}
+#endif
+
 namespace facebook::yoga {
 
 /**
@@ -75,7 +100,7 @@ class StyleValuePool {
           handle.type() == StyleValueHandle::Type::Point ||
           handle.type() == StyleValueHandle::Type::Percent);
       float value = (handle.isValueIndexed())
-          ? std::bit_cast<float>(buffer_.get32(handle.value()))
+          ? cpp17_or_cpp20_bit_cast<float>(buffer_.get32(handle.value()))
           : unpackInlineInteger(handle.value());
 
       return handle.type() == StyleValueHandle::Type::Point
@@ -100,7 +125,7 @@ class StyleValuePool {
           handle.type() == StyleValueHandle::Type::Point ||
           handle.type() == StyleValueHandle::Type::Percent);
       float value = (handle.isValueIndexed())
-          ? std::bit_cast<float>(buffer_.get32(handle.value()))
+          ? cpp17_or_cpp20_bit_cast<float>(buffer_.get32(handle.value()))
           : unpackInlineInteger(handle.value());
 
       return handle.type() == StyleValueHandle::Type::Point
@@ -115,7 +140,7 @@ class StyleValuePool {
     } else {
       assert(handle.type() == StyleValueHandle::Type::Number);
       float value = (handle.isValueIndexed())
-          ? std::bit_cast<float>(buffer_.get32(handle.value()))
+          ? cpp17_or_cpp20_bit_cast<float>(buffer_.get32(handle.value()))
           : unpackInlineInteger(handle.value());
       return FloatOptional{value};
     }
@@ -129,13 +154,13 @@ class StyleValuePool {
     handle.setType(type);
 
     if (handle.isValueIndexed()) {
-      auto newIndex =
-          buffer_.replace(handle.value(), std::bit_cast<uint32_t>(value));
+      auto newIndex = buffer_.replace(
+          handle.value(), cpp17_or_cpp20_bit_cast<uint32_t>(value));
       handle.setValue(newIndex);
     } else if (isIntegerPackable(value)) {
       handle.setValue(packInlineInteger(value));
     } else {
-      auto newIndex = buffer_.push(std::bit_cast<uint32_t>(value));
+      auto newIndex = buffer_.push(cpp17_or_cpp20_bit_cast<uint32_t>(value));
       handle.setValue(newIndex);
       handle.setValueIsIndexed();
     }

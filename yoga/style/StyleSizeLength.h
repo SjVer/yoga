@@ -117,6 +117,12 @@ class StyleSizeLength {
     return value_ == rhs.value_ && unit_ == rhs.unit_;
   }
 
+#ifdef APPLY_FIXES_FOR_CPP17
+  constexpr bool operator!=(const StyleSizeLength& rhs) const {
+    return value_ != rhs.value_ || unit_ != rhs.unit_;
+  }
+#endif
+
   constexpr bool inexactEquals(const StyleSizeLength& other) const {
     return unit_ == other.unit_ &&
         facebook::yoga::inexactEquals(value_, other.value_);

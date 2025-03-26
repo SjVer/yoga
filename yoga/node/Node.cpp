@@ -17,9 +17,17 @@
 
 namespace facebook::yoga {
 
-Node::Node() : Node{&Config::getDefault()} {}
+Node::Node() : Node{&Config::getDefault()} {
+#ifdef APPLY_FIXES_FOR_CPP17
+  cpp17_fix_set_defaults();
+#endif
+}
 
 Node::Node(const yoga::Config* config) : config_{config} {
+#ifdef APPLY_FIXES_FOR_CPP17
+  cpp17_fix_set_defaults();
+#endif
+
   yoga::assertFatal(
       config != nullptr, "Attempting to construct Node with null config");
 
@@ -71,9 +79,14 @@ YGSize Node::measure(
         "Measure function returned an invalid dimension to Yoga: [width=%f, height=%f]",
         size.width,
         size.height);
+
+#ifndef APPLY_FIXES_FOR_CPP17
     return {
         .width = maxOrDefined(0.0f, size.width),
         .height = maxOrDefined(0.0f, size.height)};
+#else
+    return {maxOrDefined(0.0f, size.width), maxOrDefined(0.0f, size.height)};
+#endif
   }
 
   return size;

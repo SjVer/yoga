@@ -306,11 +306,32 @@ class YG_EXPORT Node : public ::YGNode {
     style_.setAlignContent(Align::Stretch);
   }
 
+#ifndef APPLY_FIXES_FOR_CPP17
+
   bool hasNewLayout_ : 1 = true;
   bool isReferenceBaseline_ : 1 = false;
   bool isDirty_ : 1 = true;
   bool alwaysFormsContainingBlock_ : 1 = false;
   NodeType nodeType_ : bitCount<NodeType>() = NodeType::Default;
+
+#else
+
+  bool hasNewLayout_ : 1;
+  bool isReferenceBaseline_ : 1;
+  bool isDirty_ : 1;
+  bool alwaysFormsContainingBlock_ : 1;
+  NodeType nodeType_ : bitCount<NodeType>();
+
+  inline void cpp17_fix_set_defaults() {
+    hasNewLayout_ = true;
+    isReferenceBaseline_ = false;
+    isDirty_ = true;
+    alwaysFormsContainingBlock_ = false;
+    nodeType_ = NodeType::Default;
+  }
+
+#endif
+
   void* context_ = nullptr;
   YGMeasureFunc measureFunc_ = nullptr;
   YGBaselineFunc baselineFunc_ = nullptr;

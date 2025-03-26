@@ -108,8 +108,23 @@ struct LayoutResults {
   }
 
  private:
+
+#ifndef APPLY_FIXES_FOR_CPP17
+
   Direction direction_ : bitCount<Direction>() = Direction::Inherit;
   bool hadOverflow_ : 1 = false;
+
+#else
+
+  Direction direction_ : bitCount<Direction>();
+  bool hadOverflow_ : 1;
+
+public:
+  LayoutResults() : direction_(Direction::Inherit), hadOverflow_(false) {}
+
+private:
+
+#endif
 
   std::array<float, 2> dimensions_ = {{YGUndefined, YGUndefined}};
   std::array<float, 2> measuredDimensions_ = {{YGUndefined, YGUndefined}};

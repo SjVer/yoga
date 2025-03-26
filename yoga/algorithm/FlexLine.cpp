@@ -111,6 +111,8 @@ FlexLine calculateFlexLine(
     totalFlexShrinkScaledFactors = 1;
   }
 
+#ifndef APPLY_FIXES_FOR_CPP17
+
   return FlexLine{
       .itemsInFlow = std::move(itemsInFlow),
       .sizeConsumed = sizeConsumed,
@@ -119,6 +121,19 @@ FlexLine calculateFlexLine(
           totalFlexGrowFactors,
           totalFlexShrinkScaledFactors,
       }};
+
+#else
+
+  return FlexLine{
+      std::move(itemsInFlow),
+      sizeConsumed,
+      numberOfAutoMargins,
+      FlexLineRunningLayout{
+          totalFlexGrowFactors,
+          totalFlexShrinkScaledFactors,
+      }};
+
+#endif
 }
 
 } // namespace facebook::yoga

@@ -118,7 +118,15 @@ class LayoutableChildren {
   };
 
   explicit LayoutableChildren(const T* node) : node_(node) {
+#ifndef APPLY_FIXES_FOR_CPP17
     static_assert(std::input_iterator<LayoutableChildren<T>::Iterator>);
+#else
+    static_assert(
+        std::is_same<
+            typename std::iterator_traits<Iterator>::iterator_category,
+            std::input_iterator_tag>::value,
+        "Iterator must meet input iterator requirements");
+#endif
     static_assert(
         std::is_base_of<Node, T>::value,
         "Type parameter of LayoutableChildren must derive from yoga::Node");

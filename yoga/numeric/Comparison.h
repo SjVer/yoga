@@ -10,11 +10,15 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#ifndef APPLY_FIXES_FOR_CPP17
 #include <concepts>
+#endif
 
 #include <yoga/Yoga.h>
 
 namespace facebook::yoga {
+
+#ifndef APPLY_FIXES_FOR_CPP17
 
 constexpr bool isUndefined(std::floating_point auto value) {
   return value != value;
@@ -50,6 +54,62 @@ constexpr auto minOrDefined(
 
   return yoga::isUndefined(a) ? b : a;
 }
+
+#else
+
+/**
+ * Check if a floating-point value is undefined (NaN)
+ */
+template <typename T>
+constexpr typename std::enable_if<std::is_floating_point<T>::value, bool>::type
+isUndefined(T value) {
+  return value != value;
+}
+
+/**
+ * Check if a floating-point value is defined
+ */
+template <typename T>
+constexpr typename std::enable_if<std::is_floating_point<T>::value, bool>::type
+isDefined(T value) {
+  return !isUndefined(value);
+}
+
+/**
+ * Constexpr version of `std::isinf`
+ */
+template <typename T>
+constexpr typename std::enable_if<std::is_floating_point<T>::value, bool>::type
+isinf(T value) {
+  return value == +std::numeric_limits<T>::infinity() ||
+      value == -std::numeric_limits<T>::infinity();
+}
+
+/**
+ * Maximum of two floating-point values, handling undefined cases
+ */
+template <typename T>
+constexpr typename std::enable_if<std::is_floating_point<T>::value, T>::type
+maxOrDefined(T a, T b) {
+  if (isDefined(a) && isDefined(b)) {
+    return std::max(a, b);
+  }
+  return isUndefined(a) ? b : a;
+}
+
+/**
+ * Minimum of two floating-point values, handling undefined cases
+ */
+template <typename T>
+constexpr typename std::enable_if<std::is_floating_point<T>::value, T>::type
+minOrDefined(T a, T b) {
+  if (isDefined(a) && isDefined(b)) {
+    return std::min(a, b);
+  }
+  return isUndefined(a) ? b : a;
+}
+
+#endif
 
 // Custom equality functions using a hardcoded epsilon of 0.0001f, or returning
 // true if both floats are NaN.
